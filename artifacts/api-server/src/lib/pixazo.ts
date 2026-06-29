@@ -8,7 +8,7 @@ export async function generateImageJob(prompt: string): Promise<{ requestId: str
     throw new Error("PIXAZO_API_KEY is not set");
   }
 
-  const url = `${BASE_URL}/gpt-image-2-text-to-image/v1/gpt-image-2-text-to-image/generate`;
+  const url = `${BASE_URL}/gpt-image-2/v1/text-to-image`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
