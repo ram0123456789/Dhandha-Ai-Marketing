@@ -1,77 +1,108 @@
 import { Layout } from "@/components/layout";
-import { useGetDashboardSummary, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MessageSquare, ImageIcon, Edit3, BarChart, Reply, Clock } from "lucide-react";
+import { useGetDashboardSummary } from "@workspace/api-client-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, ImageIcon, Edit3, BarChart, Reply, Clock, TrendingUp, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Dashboard() {
   const { data: summary, isLoading } = useGetDashboardSummary();
 
   const stats = [
-    { label: "Total Posts", value: summary?.totalPosts, icon: MessageSquare, color: "text-blue-500" },
-    { label: "Images Generated", value: summary?.imagesGenerated, icon: ImageIcon, color: "text-indigo-500" },
-    { label: "Captions Made", value: summary?.captionsGenerated, icon: Edit3, color: "text-primary" },
-    { label: "Audits Run", value: summary?.auditsRun, icon: BarChart, color: "text-green-500" },
-    { label: "Replies Generated", value: summary?.repliesGenerated, icon: Reply, color: "text-orange-500" },
+    { label: "Posts", value: summary?.totalPosts, icon: MessageSquare, color: "bg-blue-500/10 text-blue-500" },
+    { label: "Images", value: summary?.imagesGenerated, icon: ImageIcon, color: "bg-indigo-500/10 text-indigo-500" },
+    { label: "Captions", value: summary?.captionsGenerated, icon: Edit3, color: "bg-primary/10 text-primary" },
+    { label: "Audits", value: summary?.auditsRun, icon: BarChart, color: "bg-green-500/10 text-green-500" },
+    { label: "Replies", value: summary?.repliesGenerated, icon: Reply, color: "bg-orange-500/10 text-orange-500" },
+  ];
+
+  const quickActions = [
+    { label: "Image Gen", icon: ImageIcon, href: "/image-generator" },
+    { label: "Social", icon: MessageSquare, href: "/social-posts" },
+    { label: "Audit", icon: BarChart, href: "/business-audit" },
+    { label: "Reviews", icon: Reply, href: "/review-replies" },
   ];
 
   return (
     <Layout>
-      <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+      <div className="space-y-5 animate-in fade-in duration-300">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Namaste! Let's grow your business.</h1>
-          <p className="text-muted-foreground mt-2 text-lg">Here is your marketing overview for today.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Namaste!</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Let's grow your dhandha today.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-4 gap-3">
+          {quickActions.map((action) => (
+            <a key={action.href} href={action.href} className="flex flex-col items-center gap-2 p-3 bg-card border border-border/60 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-colors">
+              <div className="bg-primary/10 p-2.5 rounded-xl">
+                <action.icon className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-medium">{action.label}</span>
+            </a>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-5 gap-2">
           {stats.map((stat, i) => (
-            <Card key={i} className="border-border/50 shadow-sm hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                    <div className="mt-2 flex items-baseline text-3xl font-bold">
-                      {isLoading ? <Skeleton className="h-8 w-16" /> : stat.value || 0}
-                    </div>
-                  </div>
-                  <div className={`p-3 bg-muted rounded-full ${stat.color}`}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
+            <Card key={i} className="border-border/60">
+              <CardContent className="p-3 flex flex-col items-center text-center">
+                <div className={`p-1.5 rounded-lg mb-1.5 ${stat.color}`}>
+                  <stat.icon className="h-3.5 w-3.5" />
                 </div>
+                <span className="text-lg font-bold leading-none">
+                  {isLoading ? <Skeleton className="h-5 w-5 inline-block" /> : stat.value || 0}
+                </span>
+                <p className="text-[10px] text-muted-foreground mt-1 leading-none">{stat.label}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <h2 className="text-xl font-semibold mt-8 mb-4">Recent Activity</h2>
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
-              </div>
-            ) : summary?.recentActivity?.length ? (
-              <div className="divide-y divide-border">
-                {summary.recentActivity.map((activity, i) => (
-                  <div key={i} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
-                    <div className="mt-0.5 bg-primary/10 p-2 rounded-full text-primary">
-                      <Clock className="h-4 w-4" />
+        {/* Activity */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              Recent Activity
+            </h2>
+            {summary?.recentActivity?.length ? (
+              <span className="text-xs text-muted-foreground">{summary.recentActivity.length} items</span>
+            ) : null}
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}
+            </div>
+          ) : summary?.recentActivity?.length ? (
+            <div className="space-y-2">
+              {summary.recentActivity.map((activity, i) => (
+                <Card key={i} className="border-border/60">
+                  <CardContent className="p-3 flex items-start gap-3">
+                    <div className="mt-0.5 bg-primary/10 p-1.5 rounded-full shrink-0">
+                      <Zap className="h-3 w-3 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{activity.type}</p>
-                      <p className="text-muted-foreground text-sm mt-1">{activity.description}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{new Date(activity.time).toLocaleString()}</p>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium">{activity.type}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{activity.description}</p>
+                      <p className="text-[10px] text-muted-foreground/70 mt-1">
+                        {new Date(activity.time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-12 text-center text-muted-foreground">
-                <p>No recent activity. Start generating some content!</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-border/60">
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No activity yet. Start growing!</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </Layout>
   );

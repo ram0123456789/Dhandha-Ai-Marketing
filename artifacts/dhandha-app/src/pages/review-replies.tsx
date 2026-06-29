@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Copy, MessageSquare } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Star, MessageSquare, ExternalLink, ClipboardCopy, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ReviewReplies() {
@@ -23,6 +24,7 @@ export default function ReviewReplies() {
     tone: ReviewReplyInputTone.professional,
   });
   const [reply, setReply] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const replyMutation = useGenerateReviewReply();
 
@@ -31,6 +33,7 @@ export default function ReviewReplies() {
       toast({ title: "Fill in all required fields", variant: "destructive" });
       return;
     }
+    setCopied(false);
     replyMutation.mutate(
       { data: { ...form, rating: Number(form.rating) } },
       {
@@ -43,43 +46,69 @@ export default function ReviewReplies() {
     );
   };
 
-  const handleCopy = () => {
+  const handlePostToGoogle = async () => {
     if (!reply) return;
-    navigator.clipboard.writeText(reply);
-    toast({ title: "Reply copied!" });
+
+    try {
+      await navigator.clipboard.writeText(reply);
+      setCopied(true);
+      toast({ title: "Reply copied!" });
+
+      // Open Google Business Profile reviews page in new tab
+      const googleBusinessUrl = `https://business.google.com/reviews`;
+      window.open(googleBusinessUrl, "_blank");
+    } catch {
+      toast({ title: "Could not copy. Please copy manually.", variant: "destructive" });
+    }
+  };
+
+  const handleCopyOnly = async () => {
+    if (!reply) return;
+    try {
+      await navigator.clipboard.writeText(reply);
+      setCopied(true);
+      toast({ title: "Reply copied!" });
+    } catch {
+      toast({ title: "Could not copy", variant: "destructive" });
+    }
   };
 
   return (
     <Layout>
-      <div className="space-y-6 animate-in fade-in duration-500">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">AI Review Replies</h1>
-          <p className="text-muted-foreground mt-2">Generate personalized, professional replies to your Google Reviews instantly.</p>
+      <div className="space-y-5 animate-in fade-in duration-300">
+        <div className="pb-2">
+          <h1 className="text-2xl font-bold tracking-tight">Review Replies</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Generate AI replies and post them to Google.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Review</CardTitle>
-              <CardDescription>Paste the review and we will craft the perfect reply.</CardDescription>
+        {!reply ? (
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Customer Review</CardTitle>
+              <CardDescription className="text-xs">Paste the review to get an AI-crafted reply.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Business Name *</Label>
-                <Input data-testid="input-business-name" placeholder="e.g. Singh's Dhaba" value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} />
+                <Label className="text-sm">Business Name</Label>
+                <Input
+                  data-testid="input-business-name"
+                  placeholder="e.g. Singh's Dhaba"
+                  value={form.businessName}
+                  onChange={(e) => setForm({ ...form, businessName: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Customer Review *</Label>
+                <Label className="text-sm">Customer Review</Label>
                 <textarea
                   data-testid="textarea-review"
-                  className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                  className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                   placeholder="Paste the customer review here..."
                   value={form.reviewText}
                   onChange={(e) => setForm({ ...form, reviewText: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Star Rating</Label>
+                <Label className="text-sm">Star Rating</Label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -97,7 +126,7 @@ export default function ReviewReplies() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Reply Tone</Label>
+                <Label className="text-sm">Reply Tone</Label>
                 <Select value={form.tone} onValueChange={(v) => setForm({ ...form, tone: v as typeof ReviewReplyInputTone[keyof typeof ReviewReplyInputTone] })}>
                   <SelectTrigger data-testid="select-tone"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -114,35 +143,63 @@ export default function ReviewReplies() {
               </Button>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Generated Reply</CardTitle>
-                  <CardDescription>Copy and paste this into your Google Business Profile.</CardDescription>
-                </div>
-                {reply && (
-                  <Button variant="outline" size="sm" data-testid="button-copy-reply" onClick={handleCopy}>
-                    <Copy className="h-4 w-4 mr-2" />Copy
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {reply ? (
-                <div className="bg-muted/50 rounded-lg p-4">
+        ) : (
+          <div className="space-y-4">
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Generated Reply</CardTitle>
+                <CardDescription className="text-xs">Your AI reply is ready to post on Google.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
                   <p data-testid="text-reply" className="text-sm leading-relaxed whitespace-pre-wrap">{reply}</p>
                 </div>
-              ) : (
-                <div className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg text-muted-foreground">
-                  <MessageSquare className="h-10 w-10 mb-3 opacity-30" />
-                  <p className="text-sm">Your AI reply will appear here</p>
+
+                <div className="flex gap-2 mt-4">
+                  <Button className="flex-1" onClick={handlePostToGoogle} data-testid="button-post-google">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Copy & Post to Google
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleCopyOnly} data-testid="button-copy-reply">
+                    {copied ? <CheckCircle className="h-4 w-4 text-green-500" /> : <ClipboardCopy className="h-4 w-4" />}
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+                <div className="flex gap-2 mt-3">
+                  <Button variant="ghost" className="w-full text-sm" onClick={() => { setReply(null); setCopied(false); }}>
+                    Generate another reply
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Review Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Business</p>
+                  <p className="text-sm font-medium">{form.businessName}</p>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Rating</p>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className={`h-4 w-4 ${form.rating >= s ? "text-yellow-400 fill-yellow-400" : "text-muted"}`} />
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Original Review</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{form.reviewText}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Layout>
   );

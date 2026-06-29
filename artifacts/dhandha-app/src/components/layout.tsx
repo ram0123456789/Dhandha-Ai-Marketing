@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="min-h-screen flex bg-background w-full">
@@ -84,12 +84,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-16 border-b border-border bg-card/50 backdrop-blur flex items-center px-8 shrink-0">
-          <h2 className="font-semibold text-lg">
-            {NAV_ITEMS.find((i) => i.href === location)?.label || "Welcome"}
-          </h2>
-        </header>
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-6xl mx-auto">
             {children}
           </div>
