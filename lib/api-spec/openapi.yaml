@@ -3,20 +3,32 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Dhandha AI Marketing App API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: images
+    description: AI image generation
+  - name: social
+    description: Social media content
+  - name: business
+    description: Google Business tools
+  - name: competitors
+    description: Competitor analysis
+  - name: reviews
+    description: Review reply generation
+  - name: posts
+    description: Saved social media posts
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +36,231 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /images/generate:
+    post:
+      operationId: generateImage
+      tags: [images]
+      summary: Generate an AI image via Pixazo GPT-2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageGenerationInput"
+      responses:
+        "200":
+          description: Image generation job queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageJob"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /images/status/{requestId}:
+    get:
+      operationId: getImageStatus
+      tags: [images]
+      summary: Poll status of an image generation job
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageJobStatus"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /social/caption:
+    post:
+      operationId: generateCaption
+      tags: [social]
+      summary: Generate social media captions for a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaptionInput"
+      responses:
+        "200":
+          description: Generated captions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaptionResult"
+
+  /social/festive:
+    post:
+      operationId: generateFestiveImage
+      tags: [social]
+      summary: Generate a festive or offer image prompt and trigger image generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FestiveInput"
+      responses:
+        "200":
+          description: Festive image job started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageJob"
+
+  /posts:
+    get:
+      operationId: getPosts
+      tags: [posts]
+      summary: Get all saved social media posts
+      responses:
+        "200":
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+    post:
+      operationId: createPost
+      tags: [posts]
+      summary: Save a social media post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/{id}:
+    delete:
+      operationId: deletePost
+      tags: [posts]
+      summary: Delete a saved post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /business/audit:
+    post:
+      operationId: auditBusiness
+      tags: [business]
+      summary: Audit a Google Business Profile and get a score with recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessAuditInput"
+      responses:
+        "200":
+          description: Audit result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAuditResult"
+
+  /business/keywords:
+    post:
+      operationId: getSeoKeywords
+      tags: [business]
+      summary: Get targeted SEO keywords for a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: Keyword suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordResult"
+
+  /competitors/analyze:
+    post:
+      operationId: analyzeCompetitors
+      tags: [competitors]
+      summary: Analyze competitors and get market insights
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompetitorInput"
+      responses:
+        "200":
+          description: Competitor analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompetitorResult"
+
+  /reviews/reply:
+    post:
+      operationId: generateReviewReply
+      tags: [reviews]
+      summary: Generate a personalized AI reply to a Google Review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewReplyInput"
+      responses:
+        "200":
+          description: Generated reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewReplyResult"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [business]
+      summary: Get aggregated dashboard stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +268,307 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    ImageGenerationInput:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+        style:
+          type: ["string", "null"]
+          description: Optional style hint e.g. "festive", "professional", "vibrant"
+
+    ImageJob:
+      type: object
+      required: [requestId, status]
+      properties:
+        requestId:
+          type: string
+        status:
+          type: string
+          enum: [QUEUED, PROCESSING, COMPLETED, FAILED, ERROR]
+        imageUrl:
+          type: ["string", "null"]
+
+    ImageJobStatus:
+      type: object
+      required: [requestId, status]
+      properties:
+        requestId:
+          type: string
+        status:
+          type: string
+          enum: [QUEUED, PROCESSING, COMPLETED, FAILED, ERROR]
+        imageUrl:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+
+    CaptionInput:
+      type: object
+      required: [businessName, businessType, topic]
+      properties:
+        businessName:
+          type: string
+        businessType:
+          type: string
+        topic:
+          type: string
+          description: e.g. "Diwali offer", "new product launch", "weekend sale"
+        platform:
+          type: string
+          enum: [instagram, facebook, both]
+          default: both
+        tone:
+          type: string
+          enum: [professional, casual, festive, urgent]
+          default: professional
+
+    CaptionResult:
+      type: object
+      required: [captions]
+      properties:
+        captions:
+          type: array
+          items:
+            type: object
+            required: [platform, caption, hashtags]
+            properties:
+              platform:
+                type: string
+              caption:
+                type: string
+              hashtags:
+                type: array
+                items:
+                  type: string
+
+    FestiveInput:
+      type: object
+      required: [businessName, occasion]
+      properties:
+        businessName:
+          type: string
+        occasion:
+          type: string
+          description: e.g. "Diwali", "Holi", "Republic Day", "Weekend Sale"
+        tagline:
+          type: ["string", "null"]
+        primaryColor:
+          type: ["string", "null"]
+
+    Post:
+      type: object
+      required: [id, caption, platform, createdAt]
+      properties:
+        id:
+          type: integer
+        caption:
+          type: string
+        platform:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        hashtags:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PostInput:
+      type: object
+      required: [caption, platform]
+      properties:
+        caption:
+          type: string
+        platform:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        hashtags:
+          type: ["string", "null"]
+
+    BusinessAuditInput:
+      type: object
+      required: [businessName, category, city]
+      properties:
+        businessName:
+          type: string
+        category:
+          type: string
+          description: e.g. "Restaurant", "Salon", "Grocery Store"
+        city:
+          type: string
+        website:
+          type: ["string", "null"]
+        hasPhotos:
+          type: boolean
+          default: false
+        hasHours:
+          type: boolean
+          default: false
+        hasDescription:
+          type: boolean
+          default: false
+        reviewCount:
+          type: integer
+          default: 0
+        averageRating:
+          type: ["number", "null"]
+
+    BusinessAuditResult:
+      type: object
+      required: [score, breakdown, recommendations]
+      properties:
+        score:
+          type: integer
+          description: Score out of 100
+        breakdown:
+          type: object
+          required: [profile, reviews, media, seo]
+          properties:
+            profile:
+              type: integer
+            reviews:
+              type: integer
+            media:
+              type: integer
+            seo:
+              type: integer
+        recommendations:
+          type: array
+          items:
+            type: object
+            required: [title, description, priority]
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              priority:
+                type: string
+                enum: [high, medium, low]
+
+    KeywordInput:
+      type: object
+      required: [businessName, category, city]
+      properties:
+        businessName:
+          type: string
+        category:
+          type: string
+        city:
+          type: string
+
+    KeywordResult:
+      type: object
+      required: [keywords]
+      properties:
+        keywords:
+          type: array
+          items:
+            type: object
+            required: [keyword, intent, difficulty]
+            properties:
+              keyword:
+                type: string
+              intent:
+                type: string
+                enum: [local, informational, transactional]
+              difficulty:
+                type: string
+                enum: [easy, medium, hard]
+
+    CompetitorInput:
+      type: object
+      required: [businessName, category, city]
+      properties:
+        businessName:
+          type: string
+        category:
+          type: string
+        city:
+          type: string
+
+    CompetitorResult:
+      type: object
+      required: [insights, opportunities, threats]
+      properties:
+        insights:
+          type: array
+          items:
+            type: object
+            required: [title, description]
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+        opportunities:
+          type: array
+          items:
+            type: string
+        threats:
+          type: array
+          items:
+            type: string
+
+    ReviewReplyInput:
+      type: object
+      required: [reviewText, rating, businessName]
+      properties:
+        reviewText:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        businessName:
+          type: string
+        tone:
+          type: string
+          enum: [professional, warm, apologetic, thankful]
+          default: professional
+
+    ReviewReplyResult:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [totalPosts, imagesGenerated, captionsGenerated, auditsRun, repliesGenerated, recentActivity]
+      properties:
+        totalPosts:
+          type: integer
+        imagesGenerated:
+          type: integer
+        captionsGenerated:
+          type: integer
+        auditsRun:
+          type: integer
+        repliesGenerated:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            type: object
+            required: [type, description, time]
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+              time:
+                type: string

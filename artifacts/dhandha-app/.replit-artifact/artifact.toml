@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Dhandha AI Marketing"
+version = "1.0.0"
+id = "artifacts/dhandha-app"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25865
+
+[services.development]
+run = "pnpm --filter @workspace/dhandha-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dhandha-app", "run", "build" ]
+publicDir = "artifacts/dhandha-app/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25865"
+BASE_PATH = "/"
